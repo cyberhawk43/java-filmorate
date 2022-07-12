@@ -46,19 +46,17 @@ public class UserController {
     public User updateUser(@RequestBody User user) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /users, метод: PUT");
         if (validateUser(user)) {
-            if (users.size() > 0) {
-                for (int i = 0; i < users.size(); i++) {
-                    if (users.get(i).getId() == user.getId()) {
-                        users.set(i, user);
-
-                        log.debug("Обновление пользователя с id = " + user.getId() + " прошло успешно!");
-                    } else {
-                        log.debug("Пользователя с таким id = " + user.getId() + " не существует!");
-                        throw new ValidationException("Пользователя с таким id = " + user.getId() + " не существует!");
-                    }
+            if (users.size() > 0 && user.getId() > 0) {
+                if (users.get(user.getId() - 1).getId() == user.getId()) {
+                    users.set((user.getId() - 1), user);
+                    log.debug("Обновление пользователя с id = " + user.getId() + " прошло успешно!");
+                } else {
+                    log.debug("Пользователя с таким id = " + user.getId() + " не существует!");
+                    throw new ValidationException("Пользователя с таким id = " + user.getId() + " не существует!");
                 }
             } else {
                 log.debug("Список пользователей пуст");
+                throw new ValidationException("Список пользователей пуст");
             }
         }
         return user;

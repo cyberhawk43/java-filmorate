@@ -45,16 +45,13 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /films, метод: PUT");
         if (validateFilm(film)) {
-            if (films.size() > 0) {
-                for (int i = 0; i < films.size(); i++) {
-                    if (films.get(i).getId() == film.getId()) {
-                        films.set(i, film);
-
-                        log.debug("Обновление фильма с id = " + film.getId() + " прошло успешно!");
-                    } else {
-                        log.debug("Фильма с таким id = " + film.getId() + " не существует!");
-                        throw new ValidationException("Фильма с таким id = " + film.getId() + " не существует!");
-                    }
+            if (films.size() > 0 && film.getId() > 0) {
+                if (films.get(film.getId() - 1).getId() == film.getId()) {
+                    films.set((film.getId() - 1), film);
+                    log.debug("Обновление фильма с id = " + film.getId() + " прошло успешно!");
+                } else {
+                    log.debug("Фильма с таким id = " + film.getId() + " не существует!");
+                    throw new ValidationException("Фильма с таким id = " + film.getId() + " не существует!");
                 }
             } else {
                 log.debug("Список фильмов пуст");
