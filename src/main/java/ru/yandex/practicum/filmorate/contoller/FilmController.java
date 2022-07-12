@@ -55,6 +55,7 @@ public class FilmController {
                 }
             } else {
                 log.debug("Список фильмов пуст");
+                throw new ValidationException("Список фильмов пуст!");
             }
         }
         return film;
