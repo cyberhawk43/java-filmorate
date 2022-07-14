@@ -9,10 +9,11 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 
-
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -62,9 +63,13 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    public Map<Integer, Film> getAllFilms() {
+    public List<Film> getAllFilms() {
+        List<Film> listFilms = new ArrayList<>();
+        for (Integer key : films.keySet()) {
+            listFilms.add(films.get(key));
+        }
         log.info("Получен запрос к эндпоинту: /films, метод: GET");
-        return films;
+        return listFilms;
     }
 
     public boolean validateFilm(@NotNull Film film) throws ValidationException {

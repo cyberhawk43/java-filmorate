@@ -15,8 +15,10 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -65,9 +67,13 @@ public class UserController {
 
 
     @GetMapping("/users")
-    public Map<Integer, User> getAllUsers() {
-        log.info("Получен запрос к эндпоинту: /users, метод: GET");
-        return users;
+    public List<User> getAllUsers() {
+        List<User> listUsers = new ArrayList<>();
+        for (Integer key : users.keySet()){
+            listUsers.add(users.get(key));
+        }
+            log.info("Получен запрос к эндпоинту: /users, метод: GET");
+        return listUsers;
     }
 
 
