@@ -14,9 +14,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-import java.util.ArrayList;
 
-import java.util.List;
+import java.util.HashMap;
+
+import java.util.Map;
 
 
 @RestController
@@ -24,7 +25,7 @@ import java.util.List;
 @Getter
 @Setter
 public class UserController {
-    List<User> users = new ArrayList<>();
+    Map<Integer, User> users = new HashMap<>();
     private int userID = 1;
 
     public int createId() {
@@ -36,7 +37,7 @@ public class UserController {
         log.info("Получен запрос к эндпоинту: /users, метод: POST");
         if (validateUser(user)) {
             user.setId(createId());
-            users.add(user);
+            users.put(user.getId(), user);
             log.debug("Создание пользователя прошло успешно!");
         }
         return user;
@@ -46,9 +47,9 @@ public class UserController {
     public User updateUser(@RequestBody User user) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /users, метод: PUT");
         if (validateUser(user)) {
-            if (users.size() > 0 && user.getId() > 0) {
-                if (users.get(user.getId() - 1).getId() == user.getId()) {
-                    users.set((user.getId() - 1), user);
+            if (users.size() > 0) {
+                if (users.get(user.getId()) != null) {
+                    users.put((user.getId()), user);
                     log.debug("Обновление пользователя с id = " + user.getId() + " прошло успешно!");
                 } else {
                     log.debug("Пользователя с таким id = " + user.getId() + " не существует!");
@@ -64,7 +65,7 @@ public class UserController {
 
 
     @GetMapping("/users")
-    public List<User> getAllUsers() {
+    public Map<Integer, User> getAllUsers() {
         log.info("Получен запрос к эндпоинту: /users, метод: GET");
         return users;
     }

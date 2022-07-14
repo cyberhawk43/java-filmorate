@@ -9,10 +9,11 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 
+
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestController
@@ -20,7 +21,7 @@ import java.util.List;
 @Getter
 @Setter
 public class FilmController {
-    private List<Film> films = new ArrayList<>();
+    private Map<Integer, Film> films = new HashMap<>();
     private int filmID = 1;
 
     public int createId() {
@@ -33,11 +34,10 @@ public class FilmController {
         log.info("Получен запрос к эндпоинту: /films, метод: POST");
         if (validateFilm(film)) {
             film.setId(createId());
-            films.add(film);
+            films.put(film.getId(), film);
             log.debug("Создание фильма успешно");
         }
         return film;
-
     }
 
 
@@ -45,9 +45,9 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /films, метод: PUT");
         if (validateFilm(film)) {
-            if (films.size() > 0 && film.getId() > 0) {
-                if (films.get(film.getId() - 1).getId() == film.getId()) {
-                    films.set((film.getId() - 1), film);
+            if (films.size() > 0) {
+                if (films.get(film.getId()) != null) {
+                    films.put(film.getId(), film);
                     log.debug("Обновление фильма с id = " + film.getId() + " прошло успешно!");
                 } else {
                     log.debug("Фильма с таким id = " + film.getId() + " не существует!");
@@ -62,7 +62,7 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    public List<Film> getAllFilms() {
+    public Map<Integer, Film> getAllFilms() {
         log.info("Получен запрос к эндпоинту: /films, метод: GET");
         return films;
     }
