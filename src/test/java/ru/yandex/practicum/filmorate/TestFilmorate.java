@@ -11,7 +11,9 @@ import ru.yandex.practicum.filmorate.model.User;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,12 +45,12 @@ public class TestFilmorate {
 
     @Test
     void getUsers() {
-        Map<Integer, User> checkMap = new HashMap<>();
+        List<User> checkList = new ArrayList<>();
         User checkUser = new User(1, "@mail", "login1", "name1",
                 LocalDate.of(1996, 7, 24));
-        checkMap.put(checkUser.getId(), checkUser);
+        checkList.add(checkUser);
         assertEquals(1, uc.getAllUsers().size());
-        assertEquals(checkMap, uc.getAllUsers());
+        assertEquals(checkList, uc.getAllUsers());
     }
 
     @Test
@@ -56,15 +58,15 @@ public class TestFilmorate {
         User user = new User(1, "@mail", "updateLogin1", "updateName1",
                 LocalDate.of(1996, 7, 24));
         uc.updateUser(user);
-        assertEquals("updateLogin1", uc.getAllUsers().get(1).getLogin());
+        assertEquals("updateLogin1", uc.getAllUsers().get(0).getLogin());
     }
 
     @Test
     void getFilms() {
-        Map<Integer, Film> films = new HashMap<>();
+        List <Film> films = new ArrayList<>();
         Film film = new Film(1, "nameFilm", "description",
                 LocalDate.of(2001, 12, 1), 120);
-        films.put(film.getId(), film);
+        films.add(film);
         assertEquals(1, fc.getAllFilms().size());
         assertEquals(films, fc.getAllFilms());
     }
@@ -83,6 +85,6 @@ public class TestFilmorate {
         Film updateFilm = new Film(1, "updateNameFilm", "updateDescription",
                 LocalDate.of(2011, 3, 2), 120);
         fc.updateFilm(updateFilm);
-        assertEquals(updateFilm, fc.getAllFilms().get(1));
+        assertEquals(updateFilm, fc.getAllFilms().get(0));
     }
 }
