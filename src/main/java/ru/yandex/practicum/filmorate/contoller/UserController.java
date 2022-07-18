@@ -6,10 +6,12 @@ import lombok.Setter;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -27,7 +29,9 @@ import java.util.Map;
 @Getter
 @Setter
 public class UserController {
-    Map<Integer, User> users = new HashMap<>();
+    @Autowired
+    UserService userService;
+    private Map<Integer, User> users = new HashMap<>();
     private int userID = 1;
 
     public int createId() {
@@ -43,6 +47,11 @@ public class UserController {
             log.debug("Создание пользователя прошло успешно!");
         }
         return user;
+    }
+
+    @PutMapping("/users/{userID}/friends/{friendID}")
+    public void addFriend(@PathVariable int userID, @PathVariable int friendID) throws ValidationException{
+        userService.addNewFriend(userID, friendID);
     }
 
     @PutMapping("/users")
@@ -69,10 +78,10 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         List<User> listUsers = new ArrayList<>();
-        for (Integer key : users.keySet()){
+        for (Integer key : users.keySet()) {
             listUsers.add(users.get(key));
         }
-            log.info("Получен запрос к эндпоинту: /users, метод: GET");
+        log.info("Получен запрос к эндпоинту: /users, метод: GET");
         return listUsers;
     }
 
