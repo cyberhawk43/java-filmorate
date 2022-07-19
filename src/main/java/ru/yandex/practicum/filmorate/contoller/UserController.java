@@ -31,59 +31,59 @@ import java.util.Map;
 public class UserController {
     @Autowired
     UserService userService;
-    private Map<Integer, User> users = new HashMap<>();
-    private int userID = 1;
-
-    public int createId() {
-        return userID++;
-    }
-
     @PostMapping("/users")
     public User addNewUser(@RequestBody User user) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /users, метод: POST");
         if (validateUser(user)) {
-            user.setId(createId());
-            users.put(user.getId(), user);
+            userService.addNewUser(user);
             log.debug("Создание пользователя прошло успешно!");
         }
         return user;
-    }
-
-    @PutMapping("/users/{userID}/friends/{friendID}")
-    public void addFriend(@PathVariable int userID, @PathVariable int friendID) throws ValidationException{
-        userService.addNewFriend(userID, friendID);
     }
 
     @PutMapping("/users")
     public User updateUser(@RequestBody User user) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /users, метод: PUT");
         if (validateUser(user)) {
-            if (users.size() > 0) {
-                if (users.get(user.getId()) != null) {
-                    users.put((user.getId()), user);
-                    log.debug("Обновление пользователя с id = " + user.getId() + " прошло успешно!");
-                } else {
-                    log.debug("Пользователя с таким id = " + user.getId() + " не существует!");
-                    throw new ValidationException("Пользователя с таким id = " + user.getId() + " не существует!");
-                }
+            if (userService.getUserByID(user.getId()) != null) {
+                userService.updateUser(user);
+                log.debug("Обновление пользователя с id = " + user.getId() + " прошло успешно!");
             } else {
-                log.debug("Список пользователей пуст");
-                throw new ValidationException("Список пользователей пуст");
+                log.debug("Пользователя с таким id = " + user.getId() + " не существует!");
+                throw new ValidationException("Пользователя с таким id = " + user.getId() + " не существует!");
             }
         }
         return user;
     }
 
-
     @GetMapping("/users")
     public List<User> getAllUsers() {
-        List<User> listUsers = new ArrayList<>();
-        for (Integer key : users.keySet()) {
-            listUsers.add(users.get(key));
-        }
         log.info("Получен запрос к эндпоинту: /users, метод: GET");
-        return listUsers;
+        return userService.getUsers();
     }
+
+    @GetMapping("/users/{userId}")
+    public User getUserById(@PathVariable int userId) throws ValidationException{
+        return userService.getUserByID(userId);
+    }
+
+    @GetMapping("/users/{userId}/friends")
+    public List<User> getFriendsUserById(@PathVariable int userId) throws ValidationException{
+        return userService.getListFriends(userId);
+    }
+
+    @PutMapping("/users/{userId}/friends/{friendId}")
+    public void addFriend(@PathVariable int userId, @PathVariable int friendId) throws ValidationException {
+        userService.addNewFriend(userId, friendId);
+        log.info("Добавление в друзья прошло успешно");
+    }
+
+    @DeleteMapping("/users/{userId}/friends/{friendId}")
+    public void delFriend(@PathVariable int userId, @PathVariable int friendId) throws ValidationException {
+        userService.deleteFriend(userId, friendId);
+    }
+
+
 
 
     public boolean validateUser(@NotNull User user) throws ValidationException {

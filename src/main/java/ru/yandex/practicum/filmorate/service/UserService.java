@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -41,7 +42,7 @@ public class UserService {
             throw new ValidationException("Пользователь с id=" + userId + " не найден");
         }
         if (friend == null) {
-            throw new ValidationException("Друг с id=" + userId + " не найден");
+            throw new ValidationException("Друг с id=" + friendId + " не найден");
         }
         userStorage.addFriend(user, friend);
     }
@@ -58,16 +59,20 @@ public class UserService {
         userStorage.deleteFriend(user, friend);
     }
 
-    public List<User> getListFriends(int userId) throws ValidationException{
+    public List<User> getListFriends(int userId) throws ValidationException {
         List<User> listFriends = new ArrayList<>();
         final User user = userStorage.getUser(userId);
         if (user == null) {
             throw new ValidationException("Пользователь с id=" + userId + " не найден");
         }
-        for(Integer friend: user.getFriendsIDs()) {
+        for (Integer friend : user.getFriendsIDs()) {
             listFriends.add(userStorage.getUser(friend));
         }
         return listFriends;
+    }
+
+    public List<User> getUsers() {
+        return userStorage.getUsers();
     }
 
 }

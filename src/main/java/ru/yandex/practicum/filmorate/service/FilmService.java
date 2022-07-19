@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class FilmService {
     @Autowired
@@ -35,37 +35,34 @@ public class FilmService {
 
     public void addNewLike(int filmId, int userId) throws ValidationException {
         final Film film = filmStorage.getFilm(filmId);
-        final F friend = userStorage.getUser(friendId);
-        if (user == null) {
-            throw new ValidationException("Пользователь с id=" + userId + " не найден");
+        final Set<Integer> users = filmStorage.getFilm(filmId).getUserID();
+        if (film == null) {
+            throw new ValidationException("Фильм с id=" + userId + " не найден");
         }
-        if (friend == null) {
-            throw new ValidationException("Друг с id=" + userId + " не найден");
+        if (users.contains(userId)) {
+            throw new ValidationException("Пользователь c id=" + userId + " уже ставил лайк");
         }
-        userStorage.addFriend(user, friend);
+        filmStorage.addLike(film, userId);
     }
 
-    public void deleteFriend(int userId, int friendId) throws ValidationException {
-        final User user = userStorage.getUser(userId);
-        final User friend = userStorage.getUser(friendId);
-        if (user == null) {
-            throw new ValidationException("Пользователь с id=" + userId + " не найден");
+    public void deleteLike(int filmId, int userId) throws ValidationException {
+        final Film film = filmStorage.getFilm(filmId);
+        final Set<Integer> users = filmStorage.getFilm(filmId).getUserID();
+        if (film == null) {
+            throw new ValidationException("Фильм с id=" + userId + " не найден");
         }
-        if (friend == null) {
-            throw new ValidationException("Друг с id=" + userId + " не найден");
+        if (!users.contains(userId)) {
+            throw new ValidationException("Пользователь с id=" + userId + " не ставил лайк");
         }
-        userStorage.deleteFriend(user, friend);
+        filmStorage.deleteLike(film, userId);
     }
 
-    public List<User> getListFriends(int userId) throws ValidationException{
-        List<User> listFriends = new ArrayList<>();
-        final User user = userStorage.getUser(userId);
-        if (user == null) {
-            throw new ValidationException("Пользователь с id=" + userId + " не найден");
+    public List<Film> getTop() throws ValidationException {
+        List<Film> topFilms = filmStorage.getTopFilms();
+        List<Film> top10Films = new ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            top10Films.add(topFilms.get(i));
         }
-        for(Integer friend: user.getFriendsIDs()) {
-            listFriends.add(userStorage.getUser(friend));
-        }
-        return listFriends;
+        return top10Films;
     }
 }

@@ -5,12 +5,12 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.Set;
 
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @ToString
 @EqualsAndHashCode
 public class User {
@@ -20,5 +20,5 @@ public class User {
     private String name;
     private LocalDate birthday;
     @JsonIgnore
-    Set<Integer> friendsIDs = new HashSet<>();
+    HashSet<Integer> friendsIDs = new HashSet<>();
 }
