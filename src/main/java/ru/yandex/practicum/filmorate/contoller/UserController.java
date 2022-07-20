@@ -15,14 +15,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-
-
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import java.util.List;
-import java.util.Map;
-
 
 @RestController
 @Slf4j
@@ -31,6 +24,7 @@ import java.util.Map;
 public class UserController {
     @Autowired
     UserService userService;
+
     @PostMapping("/users")
     public User addNewUser(@RequestBody User user) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /users, метод: POST");
@@ -63,27 +57,30 @@ public class UserController {
     }
 
     @GetMapping("/users/{userId}")
-    public User getUserById(@PathVariable int userId) throws ValidationException{
+    public User getUserById(@PathVariable int userId) {
         return userService.getUserByID(userId);
     }
 
     @GetMapping("/users/{userId}/friends")
-    public List<User> getFriendsUserById(@PathVariable int userId) throws ValidationException{
+    public List<User> getFriendsUserById(@PathVariable int userId) {
         return userService.getListFriends(userId);
     }
 
+    @GetMapping("/users/{id}/friends/common/{otherId}")
+    public List<User> getListMutualFriends(@PathVariable int id, @PathVariable int otherId) {
+        return userService.getListMutualFriends(id, otherId);
+    }
+
     @PutMapping("/users/{userId}/friends/{friendId}")
-    public void addFriend(@PathVariable int userId, @PathVariable int friendId) throws ValidationException {
+    public void addFriend(@PathVariable int userId, @PathVariable int friendId) {
         userService.addNewFriend(userId, friendId);
         log.info("Добавление в друзья прошло успешно");
     }
 
     @DeleteMapping("/users/{userId}/friends/{friendId}")
-    public void delFriend(@PathVariable int userId, @PathVariable int friendId) throws ValidationException {
+    public void delFriend(@PathVariable int userId, @PathVariable int friendId) {
         userService.deleteFriend(userId, friendId);
     }
-
-
 
 
     public boolean validateUser(@NotNull User user) throws ValidationException {

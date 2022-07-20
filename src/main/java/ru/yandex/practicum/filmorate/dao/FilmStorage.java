@@ -1,12 +1,14 @@
 package ru.yandex.practicum.filmorate.dao;
 
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.FilmComparator;
 
 import java.util.*;
 
-public class FilmStorage implements Comparator<Film> {
-
+@Component
+public class FilmStorage {
+    FilmComparator comparator = new FilmComparator();
     private Map<Integer, Film> filmMap = new HashMap<>();
     private int filmID = 1;
 
@@ -34,25 +36,18 @@ public class FilmStorage implements Comparator<Film> {
     }
 
     public void deleteLike(Film film, int userId) {
-        filmMap.get(film.getId()).getUserID().add(userId);
+        filmMap.get(film.getId()).getUserID().remove(userId);
     }
 
     public List<Film> getTopFilms() {
         List<Film> listTopFilms = new ArrayList<>(filmMap.values());
-        listTopFilms.sort(new FilmStorage());
+        listTopFilms.sort(comparator.reversed());
         return listTopFilms;
     }
 
-    @Override
-    public int compare(Film o1, Film o2) {
-        if (o1.getUserID().size() > o2.getUserID().size()) {
-            return 1;
-        } else if (o1.getUserID().size() == o2.getUserID().size()) {
-            return 0;
-        } else {
-            return -1;
-        }
-
-
+    public List<Film> getAllFilms() {
+        return new ArrayList<>(filmMap.values());
     }
+
+
 }
