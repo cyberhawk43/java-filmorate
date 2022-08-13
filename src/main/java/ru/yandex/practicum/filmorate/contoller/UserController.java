@@ -63,7 +63,7 @@ public class UserController {
 
     @GetMapping("/users/{userId}/friends")
     public List<User> getFriendsUserById(@PathVariable int userId) {
-        return userService.getListFriends(userId);
+                return userService.getListFriends(userId);
     }
 
     @GetMapping("/users/{id}/friends/common/{otherId}")
