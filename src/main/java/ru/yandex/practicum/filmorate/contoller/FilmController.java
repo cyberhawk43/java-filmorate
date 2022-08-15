@@ -24,9 +24,12 @@ public class FilmController {
     private Map<Integer, Film> films = new HashMap<>();
     private int filmID = 1;
 
-    @Autowired
-    FilmService filmService;
 
+    private final FilmService filmService;
+
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @PostMapping("/films")
     public Film addFilm(@RequestBody Film film) throws ValidationException {
@@ -79,8 +82,8 @@ public class FilmController {
     }
 
     @GetMapping("/films/popular")
-    public List<Film> getCountTopFilm (@RequestParam(required = false) Integer count) {
-        if(count == null) {
+    public List<Film> getCountTopFilm(@RequestParam(required = false) Integer count) {
+        if (count == null) {
             count = 10;
         }
         return filmService.getTop(count);

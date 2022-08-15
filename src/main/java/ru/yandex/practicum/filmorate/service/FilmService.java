@@ -1,9 +1,10 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
 
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -16,18 +17,15 @@ import java.util.Set;
 
 @Service
 public class FilmService {
-    @Autowired
-    FilmDbStorage filmDb;
 
+    private final FilmDbStorage filmDb;
+    private final UserDbStorage userDb;
 
-    public User getUserByID(int id) {
-        final User user = filmDb.getById(id);
-        if (user == null) {
-            throw new NotFoundException("пользователь с id=" + id + " не найден");
-        }
-
-        return user;
+    public FilmService(FilmDbStorage filmDb, UserDbStorage userDb) {
+        this.filmDb = filmDb;
+        this.userDb = userDb;
     }
+
 
     public List<Film> getAllFilms() {
         return filmDb.getAllFilms();
@@ -79,14 +77,21 @@ public class FilmService {
 
     public void addNewLike(int filmId, int userId) throws NotFoundException {
         getFilmByID(filmId);
-        getUserByID(userId);
+        User user = userDb.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователя не найдено!");
+        }
+        getFilmByID(filmId).getUserID().add(userId);
         filmDb.addLike(filmId, userId);
 
     }
 
     public void deleteLike(int filmId, int userId) throws NotFoundException {
         getFilmByID(filmId);
-        getUserByID(userId);
+        User user = userDb.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователя не найдено!");
+        }
         getFilmByID(filmId).getUserID().remove(userId);
         filmDb.deleteLike(filmId, userId);
     }

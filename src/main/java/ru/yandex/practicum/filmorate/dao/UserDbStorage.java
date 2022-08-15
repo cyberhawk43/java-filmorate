@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.dao;
 
+import org.springframework.dao.EmptyResultDataAccessException;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -26,26 +28,20 @@ public class UserDbStorage implements UserRepository {
         final String sqlQuery = "select * " +
                 "from USERS " +
                 "where USER_ID = ?";
-        final List<User> users = jdbc.query(sqlQuery, UserDbStorage::makeUser, id);
-        if (users.size() != 1) {
+        try {
+            return jdbc.queryForObject(sqlQuery, this::makeUser, id);
+        } catch (EmptyResultDataAccessException exp) {
+            exp.printStackTrace();
             return null;
         }
-        return users.get(0);
     }
 
-    static User makeUser(ResultSet rs, int rowNum) throws SQLException {
-        return new User(rs.getInt("USER_ID"),
-                rs.getString("USER_EMAIL"),
-                rs.getString("USER_LOGIN"),
-                rs.getString("USER_NAME"),
-                rs.getDate("BIRTHDAY").toLocalDate());
-    }
 
     @Override
     public List<User> getAllUsers() {
         final String sqlQuery = "select *" +
                 "FROM USERS";
-        return jdbc.query(sqlQuery, UserDbStorage::makeUser);
+        return jdbc.query(sqlQuery, this::makeUser);
     }
 
     @Override
@@ -123,6 +119,14 @@ public class UserDbStorage implements UserRepository {
                 "F1.USER_ID = ? AND F2.USER_ID = ? AND F1.FRIEND_ID = F2.FRIEND_ID";
         List<Integer> mutualFriendsId = jdbc.query(sqlQuery, UserDbStorage::makeFriendId, userId, otherUserId);
         return mutualFriendsId;
+    }
+
+    private User makeUser(ResultSet rs, int rowNum) throws SQLException {
+        return new User(rs.getInt("USER_ID"),
+                rs.getString("USER_EMAIL"),
+                rs.getString("USER_LOGIN"),
+                rs.getString("USER_NAME"),
+                rs.getDate("BIRTHDAY").toLocalDate());
     }
 
 }

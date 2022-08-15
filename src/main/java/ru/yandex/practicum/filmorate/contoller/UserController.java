@@ -6,7 +6,7 @@ import lombok.Setter;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -22,8 +22,12 @@ import java.util.List;
 @Getter
 @Setter
 public class UserController {
-    @Autowired
-    UserService userService;
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/users")
     public User addNewUser(@RequestBody User user) throws ValidationException {
@@ -63,7 +67,7 @@ public class UserController {
 
     @GetMapping("/users/{userId}/friends")
     public List<User> getFriendsUserById(@PathVariable int userId) {
-                return userService.getListFriends(userId);
+        return userService.getListFriends(userId);
     }
 
     @GetMapping("/users/{id}/friends/common/{otherId}")

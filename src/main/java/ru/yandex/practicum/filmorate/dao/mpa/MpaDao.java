@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.sql.Select;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
@@ -25,7 +26,7 @@ public class MpaDao implements MpaRepository {
     @Override
     public MPA getMpaById(int id) {
         if (id > 5) {
-
+            throw new NotFoundException("Такого id Mpa нет");
         }
         String sqlQuery = "select * from RATING_MPA where ID_RATING = ?";
         List<MPA> listMpa = jdbc.query(sqlQuery, MpaDao::makeMPA, id);

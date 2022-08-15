@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -9,13 +11,14 @@ import ru.yandex.practicum.filmorate.dao.film.FilmRepository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
-import ru.yandex.practicum.filmorate.model.User;
+
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Repository
@@ -23,48 +26,27 @@ public class FilmDbStorage implements FilmRepository {
 
     private final JdbcTemplate jdbc;
 
-
-    public User getById(int id) {
-        final String sqlQuery = "select * " +
-                "from USERS " +
-                "where USER_ID = ?";
-        final List<User> users = jdbc.query(sqlQuery, UserDbStorage::makeUser, id);
-        if (users.size() != 1) {
-            return null;
-        }
-        return users.get(0);
-    }
-
-    private User makeUser(ResultSet rs, int rowNum) throws SQLException {
-        return new User(rs.getInt("USER_ID"),
-                rs.getString("USER_EMAIL"),
-                rs.getString("USER_LOGIN"),
-                rs.getString("USER_NAME"),
-                rs.getDate("BIRTHDAY").toLocalDate());
-    }
-
     @Override
     public Film getFilmById(int id) {
-        final String sqlQuery = "select * from FILMS left join RATING_MPA RM on FILMS.ID_MPA = RM.ID_RATING " +
+        final String sqlQuery = "select FILM_ID, " +
+                "FILM_NAME, " +
+                "FILM_DESCRIPTION, " +
+                "FILM_RELEASE, " +
+                "FILM_DURATION, " +
+                "RATE, " +
+                "ID_MPA, " +
+                "ID_RATING, " +
+                "NAME_OF_RATING" +
+                " from FILMS left join RATING_MPA RM on FILMS.ID_MPA = RM.ID_RATING " +
                 " where FILM_ID = ?";
-        final List<Film> films = jdbc.query(sqlQuery, this::makeFilm, id);
-        if (films.size() != 1) {
+        try {
+            return jdbc.queryForObject(sqlQuery, this::makeFilm, id);
+        } catch (EmptyResultDataAccessException exp) {
+            exp.printStackTrace();
             return null;
         }
-        return films.get(0);
     }
 
-    private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
-        Film newFilm = new Film(rs.getInt("FILM_ID"),
-                rs.getString("FILM_NAME"),
-                rs.getString("FILM_DESCRIPTION"),
-                rs.getDate("FILM_RELEASE").toLocalDate(),
-                rs.getInt("FILM_DURATION"),
-                rs.getInt("RATE"),
-                new MPA(rs.getInt("ID_MPA"), rs.getString("RATING_MPA.NAME_OF_RATING")));
-        newFilm.setGenres(getFilmGenres(newFilm.getId()));
-        return newFilm;
-    }
 
     @Override
     public Film saveFilm(Film film) {
@@ -120,13 +102,20 @@ public class FilmDbStorage implements FilmRepository {
 
     @Override
     public List<Film> getTopFilms(int count) {
-        String sqlQuery = "select FILMS.FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE, FILM_DURATION, RATE, ID_MPA,RM.NAME_OF_RATING, COUNT(l.USER_ID)" +
+        String sqlQuery = "select FILMS.FILM_ID, " +
+                "FILM_NAME, " +
+                "FILM_DESCRIPTION, " +
+                "FILM_RELEASE, " +
+                "FILM_DURATION, " +
+                "RATE, ID_MPA, " +
+                "RM.NAME_OF_RATING, " +
+                "COUNT(l.USER_ID)" +
                 " from FILMS " +
                 "left join RATING_MPA RM on FILMS.ID_MPA = RM.ID_RATING " +
                 "left join LIKES L on FILMS.FILM_ID = L.FILM_ID " +
-                "GROUP BY FILMS.FILM_ID " +
-                "ORDER BY COUNT(l.USER_ID) desc " +
-                "LIMIT ?";
+                "group by FILMS.FILM_ID " +
+                "order by COUNT(l.USER_ID) desc " +
+                "limit ?";
         List<Film> topFilms = jdbc.query(sqlQuery, this::makeFilm, count);
         return topFilms;
     }
@@ -148,17 +137,17 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
-    public HashSet<Genre> getFilmGenres(int id) {
-        String sql = "SELECT fg.ID_GENRE, g.NAME_OF_GENRE " +
-                "FROM film_genre AS fg " +
-                "LEFT OUTER JOIN GENRE AS g ON fg.ID_GENRE = g.ID_GENRE " +
-                "WHERE fg.ID_FILM = ?";
+    public Set<Genre> getFilmGenres(int id) {
+        String sql = "select fg.ID_GENRE, g.NAME_OF_GENRE " +
+                "from film_genre AS fg " +
+                "left join GENRE AS g ON fg.ID_GENRE = g.ID_GENRE " +
+                "where fg.ID_FILM = ?";
         List<Genre> genres = jdbc.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("ID_GENRE"), rs.getString("NAME_OF_GENRE")), id);
         if (!genres.isEmpty()) {
             return new HashSet<>(genres);
         } else {
-            return null;
+            return new HashSet<>();
         }
     }
 
@@ -172,6 +161,18 @@ public class FilmDbStorage implements FilmRepository {
     public void delGenreOnFilm(int filmId) {
         String sqlQuery = "delete from FILM_GENRE where ID_FILM = ?";
         jdbc.update(sqlQuery, filmId);
+    }
+
+    private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
+        Film newFilm = new Film(rs.getInt("FILM_ID"),
+                rs.getString("FILM_NAME"),
+                rs.getString("FILM_DESCRIPTION"),
+                rs.getDate("FILM_RELEASE").toLocalDate(),
+                rs.getInt("FILM_DURATION"),
+                rs.getInt("RATE"),
+                new MPA(rs.getInt("ID_MPA"), rs.getString("RATING_MPA.NAME_OF_RATING")));
+        newFilm.setGenres(getFilmGenres(newFilm.getId()));
+        return newFilm;
     }
 
 

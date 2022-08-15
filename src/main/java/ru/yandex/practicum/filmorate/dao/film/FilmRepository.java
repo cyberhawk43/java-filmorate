@@ -4,8 +4,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public interface FilmRepository {
     Film getFilmById(int id);
@@ -22,7 +22,7 @@ public interface FilmRepository {
 
     void deleteLike(int filmId, int userId);
 
-    HashSet<Genre> getFilmGenres(int id);
+    Set<Genre> getFilmGenres(int id);
 
     void addFilmGenre(int filmId, int genreId);
 

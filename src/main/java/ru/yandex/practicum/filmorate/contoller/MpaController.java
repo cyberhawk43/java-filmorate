@@ -19,18 +19,21 @@ import java.util.List;
 @Setter
 public class MpaController {
 
-    @Autowired
-    MpaService ms;
+    private final MpaService mapService;
+
+    public MpaController(MpaService mapService) {
+        this.mapService = mapService;
+    }
 
     @GetMapping("/mpa")
     public List<MPA> getListMpa() {
         log.info("получен список мпа рейтинга");
-        return ms.getListMpa();
+        return mapService.getListMpa();
     }
 
     @GetMapping("/mpa/{id}")
     public MPA getMpaById(@PathVariable int id) {
         log.info("получен мпа рейтинг c id " + id);
-        return ms.getMpaById(id);
+        return mapService.getMpaById(id);
     }
 }

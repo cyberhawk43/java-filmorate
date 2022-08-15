@@ -10,17 +10,21 @@ import java.util.List;
 
 @Service
 public class MpaService {
-    @Autowired
-    MpaRepository mr;
+
+    private final MpaRepository mpaRepository;
+
+    public MpaService(MpaRepository mpaRepository) {
+        this.mpaRepository = mpaRepository;
+    }
 
     public List<MPA> getListMpa() {
-        return mr.getAllMpa();
+        return mpaRepository.getAllMpa();
     }
 
     public MPA getMpaById(int id) {
-        if (id < 1 || id > 5) {
-            throw new NotFoundException("Нет такого id у мпа");
+        if (id < 0 || id > getListMpa().size()) {
+            throw new NotFoundException("id мпа за пределами таблицы");
         }
-        return mr.getMpaById(id);
+        return mpaRepository.getMpaById(id);
     }
 }
