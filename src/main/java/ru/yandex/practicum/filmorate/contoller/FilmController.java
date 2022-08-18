@@ -4,16 +4,17 @@ package ru.yandex.practicum.filmorate.contoller;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
 
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -24,15 +25,17 @@ public class FilmController {
     private Map<Integer, Film> films = new HashMap<>();
     private int filmID = 1;
 
-    @Autowired
-    FilmService filmService;
+    public int createId() {
+        return filmID++;
+    }
 
 
     @PostMapping("/films")
     public Film addFilm(@RequestBody Film film) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /films, метод: POST");
         if (validateFilm(film)) {
-            filmService.addNewFilm(film);
+            film.setId(createId());
+            films.put(film.getId(), film);
             log.debug("Создание фильма успешно");
         }
         return film;
@@ -43,12 +46,17 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) throws ValidationException {
         log.info("Получен запрос к эндпоинту: /films, метод: PUT");
         if (validateFilm(film)) {
-            if (filmService.getFilmByID(film.getId()) != null) {
-                filmService.updateFilm(film);
-                log.debug("Обновление фильма с id = " + film.getId() + " прошло успешно!");
+            if (films.size() > 0) {
+                if (films.get(film.getId()) != null) {
+                    films.put(film.getId(), film);
+                    log.debug("Обновление фильма с id = " + film.getId() + " прошло успешно!");
+                } else {
+                    log.debug("Фильма с таким id = " + film.getId() + " не существует!");
+                    throw new ValidationException("Фильма с таким id = " + film.getId() + " не существует!");
+                }
             } else {
-                log.debug("Фильма с таким id = " + film.getId() + " не существует!");
-                throw new ValidationException("Фильма с таким id = " + film.getId() + " не существует!");
+                log.debug("Список фильмов пуст");
+                throw new ValidationException("Список фильмов пуст!");
             }
         }
         return film;
@@ -56,34 +64,12 @@ public class FilmController {
 
     @GetMapping("/films")
     public List<Film> getAllFilms() {
-        log.info("Получен запрос к эндпоинту: /films, метод: GET");
-        return filmService.getAllFilms();
-    }
-
-    @GetMapping("/films/{id}")
-    public Film getFilm(@PathVariable int id) {
-        log.info("Получен фильм по id=" + id);
-        return filmService.getFilmByID(id);
-    }
-
-    @PutMapping("/films/{id}/like/{userId}")
-    public void addLike(@PathVariable int id, @PathVariable int userId) {
-        filmService.addNewLike(id, userId);
-        log.info("Поставлен Like фильму с id=" + id + " от пользователя с userID=" + userId);
-    }
-
-    @DeleteMapping("/films/{id}/like/{userId}")
-    public void delLike(@PathVariable int id, @PathVariable int userId) {
-        filmService.deleteLike(id, userId);
-        log.info("Удален Like с фильма с id=" + id + " от пользователя с userID=" + userId);
-    }
-
-    @GetMapping("/films/popular")
-    public List<Film> getCountTopFilm (@RequestParam(required = false) Integer count) {
-        if(count == null) {
-            count = 10;
+        List<Film> listFilms = new ArrayList<>();
+        for (Integer key : films.keySet()) {
+            listFilms.add(films.get(key));
         }
-        return filmService.getTop(count);
+        log.info("Получен запрос к эндпоинту: /films, метод: GET");
+        return listFilms;
     }
 
     public boolean validateFilm(@NotNull Film film) throws ValidationException {

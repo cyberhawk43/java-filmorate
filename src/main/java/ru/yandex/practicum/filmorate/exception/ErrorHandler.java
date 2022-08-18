@@ -12,22 +12,8 @@ import ru.yandex.practicum.filmorate.model.ErrorResponse;
 public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(final NotFoundException e) {
+    public ErrorResponse handleNotFoundException(final ValidationException e) {
         log.info("404 {}", e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidateException(final ValidationException e) {
-        log.info("400 {}", e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleException(final Exception e) {
-        log.info("500 {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 }

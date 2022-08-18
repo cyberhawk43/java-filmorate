@@ -3,47 +3,43 @@ package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.contoller.FilmController;
+import ru.yandex.practicum.filmorate.contoller.UserController;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestFilmorate {
-
-    UserStorage us = new UserStorage();
-
-
-    FilmStorage fs = new FilmStorage();
-
+    private final FilmController fc = new FilmController();
+    private final UserController uc = new UserController();
 
     @BeforeEach
-    void init() {
+    void init() throws ValidationException {
         User user = new User(1, "@mail", "login1", "name1",
-                LocalDate.of(1996, 7, 24), new HashSet<>());
+                LocalDate.of(1996, 7, 24));
         Film film = new Film(1, "nameFilm", "description",
-                LocalDate.of(2001, 12, 1), 120, new HashSet<>());
-        fs.saveFilm(film);
-        us.saveUser(user);
+                LocalDate.of(2001, 12, 1), 120);
+        fc.addFilm(film);
+        uc.addNewUser(user);
     }
 
     @Test
-    void addUser() {
+    void addUser() throws ValidationException {
         //создание верного пользователя
         User user = new User(1, "@mail", "login2", "name2",
-                LocalDate.of(1996, 7, 24), new HashSet<>());
-        us.saveUser(user);
-        assertNotNull(us.getUsers().get(1));
-        assertEquals(2, us.getUsers().size());
+                LocalDate.of(1996, 7, 24));
+        uc.addNewUser(user);
+        assertNotNull(uc.getAllUsers().get(1));
+        assertEquals(2, uc.getAllUsers().size());
 
     }
 
@@ -51,78 +47,44 @@ public class TestFilmorate {
     void getUsers() {
         List<User> checkList = new ArrayList<>();
         User checkUser = new User(1, "@mail", "login1", "name1",
-                LocalDate.of(1996, 7, 24), new HashSet<>());
+                LocalDate.of(1996, 7, 24));
         checkList.add(checkUser);
-        assertEquals(1, us.getUsers().size());
-        assertEquals(checkList, us.getUsers());
+        assertEquals(1, uc.getAllUsers().size());
+        assertEquals(checkList, uc.getAllUsers());
     }
 
     @Test
-    void updateUsers() {
+    void updateUsers() throws ValidationException {
         User user = new User(1, "@mail", "updateLogin1", "updateName1",
-                LocalDate.of(1996, 7, 24), new HashSet<>());
-        us.updateUser(user);
-        assertEquals("updateLogin1", us.getUsers().get(0).getLogin());
+                LocalDate.of(1996, 7, 24));
+        uc.updateUser(user);
+        assertEquals("updateLogin1", uc.getAllUsers().get(0).getLogin());
     }
 
     @Test
     void getFilms() {
-        List<Film> films = new ArrayList<>();
+        List <Film> films = new ArrayList<>();
         Film film = new Film(1, "nameFilm", "description",
-                LocalDate.of(2001, 12, 1), 120, new HashSet<>());
+                LocalDate.of(2001, 12, 1), 120);
         films.add(film);
-        assertEquals(1, fs.getAllFilms().size());
-        assertEquals(films, fs.getAllFilms());
+        assertEquals(1, fc.getAllFilms().size());
+        assertEquals(films, fc.getAllFilms());
     }
 
     @Test
-    void addFilm() {
+    void addFilm() throws ValidationException {
         Film film2 = new Film(1, "nameFilm2", "description2",
-                LocalDate.of(2002, 1, 1), 120, new HashSet<>());
-        fs.saveFilm(film2);
-        assertNotNull(fs.getAllFilms().get(1));
-        assertEquals(2, fs.getAllFilms().size());
+                LocalDate.of(2002, 1, 1), 120);
+        fc.addFilm(film2);
+        assertNotNull(fc.getAllFilms().get(1));
+        assertEquals(2, fc.getAllFilms().size());
     }
 
     @Test
-    void updateFilm() {
+    void updateFilm() throws ValidationException {
         Film updateFilm = new Film(1, "updateNameFilm", "updateDescription",
-                LocalDate.of(2011, 3, 2), 120, new HashSet<>());
-        fs.updateFilm(updateFilm);
-        assertEquals(updateFilm, fs.getAllFilms().get(0));
-    }
-
-    @Test
-    void addLike() {
-        fs.addLike(fs.getFilm(1), 1);
-        assertEquals(1, fs.getFilm(1).getUserID().size());
-    }
-
-    @Test
-    void delLike() {
-        fs.addLike(fs.getFilm(1), 1);
-        fs.deleteLike(fs.getFilm(1), 1);
-        assertEquals(0, fs.getFilm(1).getUserID().size());
-    }
-
-    @Test
-    void addNewFriend() {
-        User user = new User(1, "@mail", "login3", "name3",
-                LocalDate.of(2006, 1, 14), new HashSet<>());
-        us.saveUser(user);
-        us.addFriend(us.getUser(1), us.getUser(2));
-        assertEquals(1, us.getUser(2).getFriendsIDs().size());
-        assertEquals(1, us.getUser(1).getFriendsIDs().size());
-    }
-
-    @Test
-    void delFriend() {
-        User user = new User(1, "@mail", "login3", "name3",
-                LocalDate.of(2006, 1, 14), new HashSet<>());
-        us.saveUser(user);
-        us.addFriend(us.getUser(1), us.getUser(2));
-        us.deleteFriend(us.getUser(1), us.getUser(2));
-        assertEquals(0, us.getUser(2).getFriendsIDs().size());
-        assertEquals(0, us.getUser(1).getFriendsIDs().size());
+                LocalDate.of(2011, 3, 2), 120);
+        fc.updateFilm(updateFilm);
+        assertEquals(updateFilm, fc.getAllFilms().get(0));
     }
 }

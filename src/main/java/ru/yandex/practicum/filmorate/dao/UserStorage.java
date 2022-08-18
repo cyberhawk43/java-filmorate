@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class UserStorage {
@@ -12,10 +14,6 @@ public class UserStorage {
 
     public int createId() {
         return userID++;
-    }
-
-    public List<User> getUsers() {
-        return new ArrayList<>(userMap.values());
     }
 
     public User getUser(int userId) {

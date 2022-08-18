@@ -1,26 +1,38 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
+import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
+
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MPA;
+import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class FilmService {
-    @Autowired
-    FilmStorage filmStorage;
+
+    private final FilmDbStorage filmDb;
+    private final UserDbStorage userDb;
+
+    public FilmService(FilmDbStorage filmDb, UserDbStorage userDb) {
+        this.filmDb = filmDb;
+        this.userDb = userDb;
+    }
+
 
     public List<Film> getAllFilms() {
-        return filmStorage.getAllFilms();
+        return filmDb.getAllFilms();
     }
 
     public Film getFilmByID(int filmId) throws NotFoundException {
-        final Film film = filmStorage.getFilm(filmId);
+        final Film film = filmDb.getFilmById(filmId);
         if (film == null) {
             throw new NotFoundException("Фильм с id=" + filmId + " не найден");
         }
@@ -28,50 +40,63 @@ public class FilmService {
     }
 
     public Film updateFilm(Film updateFilm) throws NotFoundException {
-        final Film oldFilm = filmStorage.getFilm(updateFilm.getId());
+        final Film oldFilm = filmDb.getFilmById(updateFilm.getId());
+        final Set<Genre> genres = updateFilm.getGenres();
+        if (genres.size() != 0) {
+            filmDb.delGenreOnFilm(updateFilm.getId());
+            for (Genre genre : genres) {
+                filmDb.addFilmGenre(updateFilm.getId(), genre.getId());
+            }
+            updateFilm.setGenres(genres);
+        } else {
+            filmDb.delGenreOnFilm(updateFilm.getId());
+        }
         if (oldFilm == null) {
             throw new NotFoundException("Фильм с id=" + updateFilm + " не найден");
         }
-        return filmStorage.updateFilm(updateFilm);
+        return filmDb.updateFilm(updateFilm);
     }
 
     public Film addNewFilm(Film film) {
-        return filmStorage.saveFilm(film);
+        final Film newFilm = filmDb.saveFilm(film);
+        final Set<Genre> genres = film.getGenres();
+        final MPA mpa = film.getMpa();
+        if (genres != null) {
+
+            for (Genre genre : genres) {
+                filmDb.addFilmGenre(film.getId(), genre.getId());
+            }
+            newFilm.setGenres(genres);
+        }
+        if (mpa != null) {
+            System.out.println("мпа - " + mpa.getId());
+
+        }
+        return newFilm;
     }
 
     public void addNewLike(int filmId, int userId) throws NotFoundException {
-        final Film film = filmStorage.getFilm(filmId);
-        final Set<Integer> users = filmStorage.getFilm(filmId).getUserID();
-        if (film == null) {
-            throw new NotFoundException("Фильм с id=" + userId + " не найден");
+        getFilmByID(filmId);
+        User user = userDb.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователя не найдено!");
         }
-        if (users.contains(userId)) {
-            throw new NotFoundException("Пользователь c id=" + userId + " уже ставил лайк");
-        }
-        filmStorage.addLike(film, userId);
+        getFilmByID(filmId).getUserID().add(userId);
+        filmDb.addLike(filmId, userId);
+
     }
 
     public void deleteLike(int filmId, int userId) throws NotFoundException {
-        final Film film = filmStorage.getFilm(filmId);
-        final Set<Integer> users = filmStorage.getFilm(filmId).getUserID();
-        if (film == null) {
-            throw new NotFoundException("Фильм с id=" + userId + " не найден");
+        getFilmByID(filmId);
+        User user = userDb.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователя не найдено!");
         }
-        if (!users.contains(userId)) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не ставил лайк");
-        }
-        filmStorage.deleteLike(film, userId);
+        getFilmByID(filmId).getUserID().remove(userId);
+        filmDb.deleteLike(filmId, userId);
     }
 
     public List<Film> getTop(int count) {
-        List<Film> topFilms = filmStorage.getTopFilms();
-        List<Film> topCountFilms = new ArrayList<>();
-        if (count > topFilms.size()) {
-            count = topFilms.size();
-        }
-        for (int i = 0; i < count; i++) {
-            topCountFilms.add(topFilms.get(i));
-        }
-        return topCountFilms;
+        return filmDb.getTopFilms(count);
     }
 }
